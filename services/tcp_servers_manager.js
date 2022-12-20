@@ -1,4 +1,4 @@
-import TcpServer from "./tcp_server"
+import TcpServer from "./tcp_server.js"
 
 
 export default class TcpServersManager {
@@ -8,7 +8,7 @@ export default class TcpServersManager {
     this.portsAvailable = {}
     this.servers = {}
 
-    for (let index; serversPollSize < index; index++) {
+    for (let index = 0; serversPollSize > index; index++) {
       this.portsAvailable[index + this.INITIAL_PORT_RANGE] = false
     }
   }
@@ -21,6 +21,7 @@ export default class TcpServersManager {
       server.create()
       server.listen()
 
+      // TODO: refactor this to use Map class??
       this.servers[id] = {
         server: server,
         port: port
@@ -45,13 +46,13 @@ export default class TcpServersManager {
 
   requestPort() {
     for (let port of Object.keys(this.portsAvailable)) {
-      let available = this.portsAvailable[port]
+      let allocated = this.portsAvailable[port]
 
-      if (!available) {
+      if (allocated) {
         continue
       }
 
-      // lock this port for one server
+      // lock this port for a server
       this.portsAvailable[port] = true
 
       return port

@@ -1,45 +1,16 @@
+import { v4 as uuidv4 } from 'uuid';
 import net from "net"
-
-// var server = net.createServer(function(socket) {
-// 	socket.write('Echo server\r\n');
-// 	socket.pipe(socket);
-//   setInterval(() => {
-//     socket.write("asdfsdf")
-//   }, 1000);
-// });
-
-// server.listen(1337, '127.0.0.1');
-
-// function createServer(port) {
-let server = net.createServer(function (socket) {
-  socket.write('Echo server\r\n');
-  socket.pipe(socket);
-  setInterval(() => {
-    socket.write(Buffer.alloc(375000))
-  }, 1000);
-});
-
-//   server.listen(port, '127.0.0.1');
-
-//   return server
-// }
-
-// let startPort = 1337
 
 export default class TcpServer {
   constructor(port) {
     this.port = port
-    this.sockets = []
+    this.sockets = {}
     this.server = null
   }
 
   create() {
-    this.server = net.createServer(function (socket) {
-      socket.pipe(socket);
-      this.sockets.push(socket)
-    });
-
     // TODO: add event handlers for error and disconnection
+    this.server = net.createServer(socket => this.onSocketConnection(socket));
   }
 
   listen() {
@@ -52,8 +23,23 @@ export default class TcpServer {
 
 
   publish(payload) {
-    for (let socket of this.sockets) {
+    for (let socket of Object.values(this.sockets)) {
       socket.write(payload)
     }
+  }
+
+  onSocketConnection(socket) {
+    let socketId = uuidv4()
+
+    // socket.pipe(socket)
+
+    this.sockets[socketId] = socket
+
+    socket.on('error', () => this.onSocketDisconnection(socketId))
+    socket.on('end', () => this.onSocketDisconnection(socketId))
+  }
+
+  onSocketDisconnection(socketId) {
+    delete this.sockets[socketId]
   }
 }
