@@ -1,16 +1,14 @@
-import { v4 as uuidv4 } from 'uuid';
-import net from "net"
-
+import zmq from "zeromq"
 export default class TcpServer {
   constructor(port) {
     this.port = port
-    this.sockets = {}
     this.server = null
   }
 
   create() {
+    this.server = zmq.socket("pub");
     // TODO: add event handlers for error and disconnection
-    this.server = net.createServer(socket => this.onSocketConnection(socket));
+    // this.server = net.createServer(socket => this.onSocketConnection(socket));
   }
 
   listen() {
@@ -18,28 +16,11 @@ export default class TcpServer {
       throw "TCP is not initialized"
     }
 
-    this.server.listen(this.port, "127.0.0.1")
+    this.server.bindSync("tcp://127.0.0.1:" + this.port);
   }
-
 
   publish(payload) {
-    for (let socket of Object.values(this.sockets)) {
-      socket.write(payload)
-    }
-  }
-
-  onSocketConnection(socket) {
-    let socketId = uuidv4()
-
-    // socket.pipe(socket)
-
-    this.sockets[socketId] = socket
-
-    socket.on('error', () => this.onSocketDisconnection(socketId))
-    socket.on('end', () => this.onSocketDisconnection(socketId))
-  }
-
-  onSocketDisconnection(socketId) {
-    delete this.sockets[socketId]
+    console.log(payload)
+    this.server.send(['data', payload])
   }
 }
