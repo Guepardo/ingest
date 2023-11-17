@@ -1,7 +1,6 @@
 
 import { WebSocketServer } from 'ws'
 import TcpServersManager from './tcp_servers_manager.js'
-import child_process from 'child_process'
 
 export default class WsServer {
   TCP_SERVERS_POLL_SIZE = 10
